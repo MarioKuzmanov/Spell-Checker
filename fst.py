@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-from fsa import FSA, build_trie
-import sys
+from fsa import FSA
 import json
 
 
@@ -109,7 +108,21 @@ class FST:
               paths. 
         """
         # TODO
-        pass
+        transductions = []
+
+        poss_transitions = self.transitions.get((0, s[0]), set())
+        for let, st, w in poss_transitions:
+            # built string, state, weight of path, index in string
+            transductions.append((let, st, w, 1))
+
+        while transductions:
+            string, state, weight, idx = transductions.pop()
+            if idx < len(s):
+                transitions = self.transitions.get((state, s[idx]), set())
+                for let, st, w in transitions:
+                    transductions.append((string + let, st, weight + w, idx + 1))
+            else:
+                yield string, weight
 
     def invert(self):
         """Invert the FST.
@@ -151,18 +164,16 @@ class FST:
 if __name__ == "__main__":
     # learned alignments
     # between words and possible spelling errors
-    with open("spell-errors.json", "rt", encoding="utf8") as f:
-        weights = json.load(f)
+    # with open("spell-errors.json", "rt", encoding="utf8") as f:
+    #     weights = json.load(f)
 
     # build Finite Lexicon
     # recognizes the given words
-    fsa = build_trie(["walk", "walks", "wall", "walls", "want", "wants",
-                      "work", "works", "forks"])
+    fsa = FSA(deterministic=True)
+    fsa.build_trie(["walk", "walks", "wall", "walls", "want", "wants",
+                    "work", "works", "forks"])
     fsa.minimize()
 
     # weighted finite state transducer
     fst = FST.fromfsa(fsa)
-
-    fst.invert()
-
-    # fst.transduce("wark")
+    print(list(fst.transduce("work")))

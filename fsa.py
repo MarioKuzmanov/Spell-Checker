@@ -10,7 +10,7 @@ that recognizes all (and the only) words in the list.
 minimize() method of the FSA class, which minimizes the FSA in place if it is not minimal.
 You can use any of the minimization methods discussed in the class.
 """
-
+import sys
 from collections import defaultdict
 
 
@@ -28,14 +28,17 @@ class FSA:
             string immediately.
         start_state: number/name of the start state
         accepting: the set of accepting states
-        is_deterministic (boolean): whether the FSA is deterministic or not
+        deterministic (boolean): whether the FSA is deterministic or not
     """
 
     def __init__(self, deterministic=True):
+        self._reset(deterministic)
+
+    def _reset(self, deterministic):
+        self.deterministic = deterministic
         self.transitions = dict()
         self.start_state = None
         self.accepting = set()
-        self.is_deterministic = deterministic
         self._alphabet = set()  # just for convenience, we can
         self._states = set()  # always read it off from transitions
 
@@ -109,10 +112,79 @@ class FSA:
     def recognize(self, s):
         """ Recognize the given string 's', return a boolean value
         """
-        if self.is_deterministic:
+        if self.deterministic:
             return self._recognize_dfa(s)
         else:
             return self._recognize_nfa(s)
+
+    def write_dot(self, filename=None):
+        """ Write the FSA to an .dot formatted text file.
+        """
+        if filename:
+            fp = open(filename, 'w', encoding="utf8")
+        else:
+            fp = sys.stdout
+        print("digraph {\n"
+              "  rankdir = LR;\n"
+              "  start[style=invis];\n"
+              "  node[shape=circle];", file=fp)
+        fmt_transition = "  {} -> {} [label=\"{}\"];"
+        fmt_accepting = "  {} [shape=doublecircle];"
+
+        # make sure the first symbol to output is the start state
+        for sym in self._alphabet:
+            if (self.start_state, sym) in self.transitions:
+                for s2 in self.transitions[(self.start_state, sym)]:
+                    print(fmt_transition.format(self.start_state, s2, sym),
+                          file=fp)
+        for s1, sym in self.transitions:
+            if s1 != self.start_state:
+                for s2 in self.transitions[(s1, sym)]:
+                    print(fmt_transition.format(s1, s2, sym), file=fp)
+        for st in self.accepting:
+            print(fmt_accepting.format(st), file=fp)
+        print("}", file=fp)
+        if filename:
+            fp.close()
+
+    def build_trie(self, words):
+        """Given a list of words, create and return a trie FSA.
+
+        For the given sequence of words, you should build a trie,
+        an FSA where letters are the edge labels. Since the structure is a
+        trie, common prefix paths should be shared but suffixes will
+        necessarily use many redundant paths.
+
+        You should initialize an instance of the FSA class defined above,
+        and add only the required arcs successively.
+        """
+        # TODO
+        self._reset(deterministic=True)
+
+        transitions = {(i, words[0][i]): i + 1 for i in range(len(words[0]))}
+        prev_end = len(words[0])
+        state_accepting = {prev_end}
+        for i in range(1, len(words)):
+            w, last_state = words[i], None
+            start = 0
+            for j in range(len(w)):
+                let = w[j]
+                if (start, let) in transitions:
+                    start = transitions[(start, let)]
+                    continue
+                else:
+                    transitions.update({(start, let): prev_end + 1})
+                    start = prev_end + 1
+                    prev_end += 1
+                    last_state = start
+            state_accepting.add(last_state)
+
+        for k, sym2 in transitions.items():
+            sym1, let = k
+            if sym2 in state_accepting:
+                self.add_transition(sym1, let, sym2, accepting=True)
+            else:
+                self.add_transition(sym1, let, sym2, accepting=False)
 
     @staticmethod
     def get_position(partitions):
@@ -160,51 +232,11 @@ class FSA:
         self.accepting = fsa_minimized.accepting
 
 
-def build_trie(words):
-    """Given a list of words, create and return a trie FSA.
-
-    For the given sequence of words, you should build a trie,
-    an FSA where letters are the edge labels. Since the structure is a
-    trie, common prefix paths should be shared but suffixes will
-    necessarily use many redundant paths.
-
-    You should initialize an instance of the FSA class defined above,
-    and add only the required arcs successively. 
-    """
-    # TODO
-    fsa = FSA(deterministic=True)
-
-    transitions = {(i, words[0][i]): i + 1 for i in range(len(words[0]))}
-    prev_end = len(words[0])
-    state_accepting = {prev_end}
-    for i in range(1, len(words)):
-        w, last_state = words[i], None
-        start = 0
-        for j in range(len(w)):
-            let = w[j]
-            if (start, let) in transitions:
-                start = transitions[(start, let)]
-                continue
-            else:
-                transitions.update({(start, let): prev_end + 1})
-                start = prev_end + 1
-                prev_end += 1
-                last_state = start
-        state_accepting.add(last_state)
-
-    for k, sym2 in transitions.items():
-        sym1, let = k
-        if sym2 in state_accepting:
-            fsa.add_transition(sym1, let, sym2, accepting=True)
-        else:
-            fsa.add_transition(sym1, let, sym2, accepting=False)
-    return fsa
-
-
 if __name__ == '__main__':
     # Example usage:
-    m = build_trie(["walk", "walks", "wall", "walls", "want", "wants",
-                    "work", "works", "forks"])
+    m = FSA(deterministic=True)
+    m.build_trie(["walk", "walks", "wall", "walls", "want", "wants",
+                  "work", "works", "forks"])
 
     m.minimize()
 

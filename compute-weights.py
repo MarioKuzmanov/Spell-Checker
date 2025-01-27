@@ -137,13 +137,13 @@ if __name__ == "__main__":
     ## The code below shows the intended use of your implementation above.
 
     counts = None
-    counts_new = count_edits('spelling-data.txt', 0.3, counts)
+    counts_new = count_edits('spelling-data.txt', 1, counts)
 
     # target: around 11 iterations (Darja and Giulio)
     epochs = 0
     while counts != counts_new:
         counts = counts_new
-        counts_new = count_edits('spelling-data.txt', 0.3, counts)
+        counts_new = count_edits('spelling-data.txt', 1, counts)
         epochs += 1
 
     print(f'epochs: {epochs}')
