@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-from fsa import FSA
-import json
-
 
 class FST:
     """A weighted FST class.
@@ -108,21 +105,19 @@ class FST:
               paths. 
         """
         # TODO
-        transductions = []
+        generated = self.transitions.get((0, s[0]), set())
+        rec_stack = []
+        for sym, st, w in generated:
+            print((sym, st, w))
+            rec_stack.append((sym, st, w, 1))
 
-        poss_transitions = self.transitions.get((0, s[0]), set())
-        for let, st, w in poss_transitions:
-            # built string, state, weight of path, index in string
-            transductions.append((let, st, w, 1))
-
-        while transductions:
-            string, state, weight, idx = transductions.pop()
+        while rec_stack:
+            string, st, w, idx = rec_stack.pop()
             if idx < len(s):
-                transitions = self.transitions.get((state, s[idx]), set())
-                for let, st, w in transitions:
-                    transductions.append((string + let, st, weight + w, idx + 1))
-            else:
-                yield string, weight
+                generated = self.transitions.get((st, s[idx]), set())
+                for sym, st2, w2 in generated:
+                    rec_stack.append((string + sym, st2, w + w2, idx + 1))
+
 
     def invert(self):
         """Invert the FST.
@@ -159,21 +154,20 @@ class FST:
         can trivially be taken from `m2`.
         """
         # TODO
+        m3 = FST()
+        for (from_state, sym1), sigmas_out in m1.transitions.items():
+            for sym2, to_state, _ in sigmas_out:
+                for (from_state2, sym12), sigmas_out2 in m2.transitions.items():
+                    if sym2 == sym12:
+                        for sym22, to_state2, w2 in sigmas_out2:
+                            st1 = int(str(from_state) + str(from_state2))
+                            st2 = int(str(to_state) + str(to_state2))
+                            m3._states.add(st1)
+                            m3._states.add(st2)
 
-
-if __name__ == "__main__":
-    # learned alignments
-    # between words and possible spelling errors
-    # with open("spell-errors.json", "rt", encoding="utf8") as f:
-    #     weights = json.load(f)
-
-    # build Finite Lexicon
-    # recognizes the given words
-    fsa = FSA(deterministic=True)
-    fsa.build_trie(["walk", "walks", "wall", "walls", "want", "wants",
-                    "work", "works", "forks"])
-    fsa.minimize()
-
-    # weighted finite state transducer
-    fst = FST.fromfsa(fsa)
-    print(list(fst.transduce("work")))
+                            if from_state in m1.accepting and from_state2 in m2.accepting:
+                                m3.accepting.add(st1)
+                            if to_state in m1.accepting and to_state2 in m2.accepting:
+                                m3.accepting.add(st2)
+                            m3.add_transition(st1, sym2, st2, sym22, w2)
+        return m3

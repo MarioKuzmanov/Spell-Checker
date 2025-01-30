@@ -51,8 +51,8 @@ def build_editfst(alphabet, counts):
 
 if __name__ == "__main__":
     ## Example usage
-    with open('lexicon.txt', 'rt') as f:
-        words = f.read().strip().split()[: 10]
+    with open('train_data/lexicon.txt', 'rt') as f:
+        words = f.read().strip().split()
         letters = set("".join(words))
 
     with open('spell-errors.json', 'rt') as f:
@@ -63,7 +63,9 @@ if __name__ == "__main__":
     fsa.build_trie(words)
 
     # Minimize it
-    fsa.minimize()
+    print(1)
+    # fsa.minimize()
+    print(2)
     lexicon = FST.fromfsa(fsa)
 
     # Convert it to an FST
@@ -71,11 +73,15 @@ if __name__ == "__main__":
     # m1 = fst built from the lexicon
     # m2 = edit fst
     edits = build_editfst(letters, errcount)
+    print(3)
 
     # Compose them
-    # spellfst = compose_fst(lexicon, edits)
+    spellfst = FST.compose_fst(lexicon, edits)
+    print(4)
+
     # The above generates all spelling mistakes, we want the invert
-    # spellfst.invert()
+    spellfst.invert()
+    spellfst.transduce("wort")
     # for sperr, w in sorted(spellfst.transduce("wort"),
     #                        key=lambda x: x[1], reverse=True):
     #     print(sperr, w)
