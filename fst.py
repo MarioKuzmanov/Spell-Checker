@@ -141,20 +141,21 @@ class FST:
         can trivially be taken from `m2`.
         """
         # TODO
-        m3 = FST()
-        for (from_state, sym1), sigmas_out in m1.transitions.items():
-            for sym2, to_state, _ in sigmas_out:
-                for (from_state2, sym12), sigmas_out2 in m2.transitions.items():
-                    if sym2 == sym12:
-                        for sym22, to_state2, w2 in sigmas_out2:
-                            st1 = int(str(from_state) + str(from_state2))
-                            st2 = int(str(to_state) + str(to_state2))
-                            m3._states.add(st1)
-                            m3._states.add(st2)
 
-                            if from_state in m1.accepting and from_state2 in m2.accepting:
-                                m3.accepting.add(st1)
-                            if to_state in m1.accepting and to_state2 in m2.accepting:
-                                m3.accepting.add(st2)
-                            m3.add_transition(st1, sym2, st2, sym22, w2)
-        return m3
+        # m3 = FST()
+        # for (from_state, sym1), sigmas_out in m1.transitions.items():
+        #     for sym2, to_state, _ in sigmas_out:
+        #         for (from_state2, sym12), sigmas_out2 in m2.transitions.items():
+        #             if sym2 == sym12:
+        #                 for sym22, to_state2, w2 in sigmas_out2:
+        #                     st1 = int(str(from_state) + str(from_state2))
+        #                     st2 = int(str(to_state) + str(to_state2))
+        #                     m3._states.add(st1)
+        #                     m3._states.add(st2)
+        #
+        #                     if from_state in m1.accepting and from_state2 in m2.accepting:
+        #                         m3.accepting.add(st1)
+        #                     if to_state in m1.accepting and to_state2 in m2.accepting:
+        #                         m3.accepting.add(st2)
+        #                     m3.add_transition(st1, sym2, st2, sym22, w2)
+        # return m3
