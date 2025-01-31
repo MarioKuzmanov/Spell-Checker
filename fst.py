@@ -108,7 +108,6 @@ class FST:
         generated = self.transitions.get((0, s[0]), set())
         rec_stack = []
         for sym, st, w in generated:
-            print((sym, st, w)) 
             rec_stack.append((sym, st, w, 1))
 
         while rec_stack:
@@ -117,29 +116,18 @@ class FST:
                 generated = self.transitions.get((st, s[idx]), set())
                 for sym, st2, w2 in generated:
                     rec_stack.append((string + sym, st2, w + w2, idx + 1))
+            else:
+                print(string)
 
     def invert(self):
         """Invert the FST.
         """
-        # TODO
-        d2 = self.transitions.copy()
-
-        for (st1, sym1), transitions in d2.items():
-            to_remove = []
-            for sym2, st2, w in transitions:
-                if sym1 != sym2:
-                    to_remove.append((sym2, st2, w))
-                    new_k = (st1, sym2)
-                    if new_k not in self.transitions:
-                        self.transitions[new_k] = {(sym1, st2, w)}
-                    else:
-                        self.transitions[new_k].add((sym1, st2, w))
-
-            for tr in to_remove:
-                transitions.remove(tr)
-
-            if transitions == {}:
-                self.transitions.pop((st1, sym1))
+        inverted_fst = FST()
+        for (from_state, sym1), sigmas_out in self.transitions.items():
+            for sym2, to_state, log_prob in sigmas_out:
+                inverted_fst.add_transition(s1=from_state, insym=sym2, s2=to_state, outsym=sym1,
+                                            w=log_prob)
+        self.transitions = inverted_fst.transitions
 
     @classmethod
     def compose_fst(cls, m1, m2):
