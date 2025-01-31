@@ -108,7 +108,7 @@ class FST:
         generated = self.transitions.get((0, s[0]), set())
         rec_stack = []
         for sym, st, w in generated:
-            print((sym, st, w))
+            print((sym, st, w)) 
             rec_stack.append((sym, st, w, 1))
 
         while rec_stack:
@@ -117,7 +117,6 @@ class FST:
                 generated = self.transitions.get((st, s[idx]), set())
                 for sym, st2, w2 in generated:
                     rec_stack.append((string + sym, st2, w + w2, idx + 1))
-
 
     def invert(self):
         """Invert the FST.

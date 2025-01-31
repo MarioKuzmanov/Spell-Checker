@@ -104,5 +104,5 @@ if __name__ == "__main__":
           f'Epochs: {epochs}')
 
     # save the file, use later to give weights
-    with open('spell-errors.json', 'wt') as f:
+    with open('train_data/spell-errors.json', 'wt') as f:
         json.dump(counts, f, ensure_ascii=False, indent=2)

@@ -2,6 +2,7 @@ from fsa import FSA
 from fst import FST
 import numpy as np
 import json
+import datetime
 
 
 def build_editfst(alphabet, counts):
@@ -50,38 +51,53 @@ def build_editfst(alphabet, counts):
 
 
 if __name__ == "__main__":
-    ## Example usage
-    with open('train_data/lexicon.txt', 'rt') as f:
-        words = f.read().strip().split()
-        letters = set("".join(words))
+    # Example usage:
 
-    with open('spell-errors.json', 'rt') as f:
+    # train lexicon
+    with open('train_data/lexicon.txt', 'rt', encoding="utf8") as f:
+        words = f.read().strip().split()
+        alphabet = set("".join(words))
+
+    # common spelling errors, from min. edit-distance alignment
+    with open('train_data/spell-errors.json', 'rt') as f:
         errcount = json.loads(f.read())
 
-    # Build the trie lexicon
+    # trie lexicon
+    print('built fsa lexicon!')
     fsa = FSA(deterministic=True)
-    fsa.build_trie(words)
+    fsa.build_trie(words[: 1000])
+    print('lexicon ready...\n')
 
-    # Minimize it
-    print(1)
-    # fsa.minimize()
-    print(2)
+    # minimize
+    # estimate time
+    print('minimize lexicon!\n'
+          f'expected time: mm: 4.0, secs: 15\n%%%')
+
+    start_time = datetime.datetime.now()
+    fsa.minimize()
+    end_time = datetime.datetime.now()
+    hh, mm, sec = str(end_time - start_time).split(':')
+
+    print('lexicon minimized...\n'
+          f'time taken: hh: {round(float(hh), 2)}, mm: {round(float(mm), 2)}, secs: {round(float(sec), 3)}\n')
+
+    # convert lexicon to FST
+    print('build transducer of the lexicon!')
     lexicon = FST.fromfsa(fsa)
+    print('transducer M1 ready...')
 
-    # Convert it to an FST
-    # Build the edit-distance FST
-    # m1 = fst built from the lexicon
-    # m2 = edit fst
-    edits = build_editfst(letters, errcount)
-    print(3)
+    # # Build the edit-distance FST
+
+    # edits = build_editfst(letters, errcount)
+    # print(3)
 
     # Compose them
-    spellfst = FST.compose_fst(lexicon, edits)
-    print(4)
-
-    # The above generates all spelling mistakes, we want the invert
-    spellfst.invert()
-    spellfst.transduce("wort")
+    # spellfst = FST.compose_fst(lexicon, edits)
+    # print(4)
+    #
+    # # The above generates all spelling mistakes, we want the invert
+    # spellfst.invert()
+    # spellfst.transduce("wort")
     # for sperr, w in sorted(spellfst.transduce("wort"),
     #                        key=lambda x: x[1], reverse=True):
     #     print(sperr, w)

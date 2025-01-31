@@ -94,7 +94,6 @@ class FSA:
         """ NFA recognition of 's' using a stack-based agenda.
         """
         agenda = []
-        state = self.start_state
         inp_pos = 0
         for node in self.transitions.get((self.start_state, s[inp_pos]), []):
             agenda.append((node, inp_pos + 1))
@@ -158,33 +157,21 @@ class FSA:
         You should initialize an instance of the FSA class defined above,
         and add only the required arcs successively.
         """
-        # TODO
         self._reset(deterministic=True)
 
-        transitions = {(i, words[0][i]): i + 1 for i in range(len(words[0]))}
-        prev_end = len(words[0])
-        state_accepting = {prev_end}
-        for i in range(1, len(words)):
-            w, last_state = words[i], None
-            start = 0
-            for j in range(len(w)):
-                let = w[j]
-                if (start, let) in transitions:
-                    start = transitions[(start, let)]
-                    continue
-                else:
-                    transitions.update({(start, let): prev_end + 1})
-                    start = prev_end + 1
-                    prev_end += 1
-                    last_state = start
-            state_accepting.add(last_state)
+        for i in range(len(words[0])):
+            self.add_transition(i, words[0][i], i + 1, i == len(words[0]) - 1)
 
-        for k, sym2 in transitions.items():
-            sym1, let = k
-            if sym2 in state_accepting:
-                self.add_transition(sym1, let, sym2, accepting=True)
-            else:
-                self.add_transition(sym1, let, sym2, accepting=False)
+        for i in range(1, len(words)):
+            st = 0
+            for j, let in enumerate(words[i]):
+                next_states = self.move(let, st)
+                if next_states is not None:
+                    st = next(iter(next_states))
+                else:
+                    st2 = len(self._states)
+                    self.add_transition(st, let, st2, j == len(words[i]) - 1)
+                    st = st2
 
     @staticmethod
     def get_position(partitions):
@@ -238,7 +225,11 @@ if __name__ == '__main__':
     m.build_trie(["walk", "walks", "wall", "walls", "want", "wants",
                   "work", "works", "forks"])
 
+    m.write_dot("screenshots/example-lexicon-fsa.dot")
+
     m.minimize()
+
+    m.write_dot("screenshots/example-lexicon-fsa-minimized.dot")
 
     assert m.recognize("walk")
     assert not m.recognize("wark")
