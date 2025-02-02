@@ -1,31 +1,20 @@
-#!/usr/bin/env python3
-"""
-The template for this part can be found in fsa.py.
-You are already given a rudimentary implementation of a finite-state automata class.
-You need to implement two functions/methods:
-
-build_trie() which takes a list of words and returns a trie (an instance of the FSA class)
-that recognizes all (and the only) words in the list.
-
-minimize() method of the FSA class, which minimizes the FSA in place if it is not minimal.
-You can use any of the minimization methods discussed in the class.
-"""
 import sys
 from collections import defaultdict
 
 
 class FSA:
-    """ A class representing finite state automata.
+    """
+    A class representing finite state automata.
+
     Args:
         deterministic: The automaton is deterministic
+
     Attributes:
         transitions: transitions kept as a dictionary
             where keys are the tuple (source_state, symbol),
             values are the target state for DFA
             and a set of target states for NFA.
-            Note that we do not require a dedicated 'sink' state.
-            Any undefined transition should cause the FSA to reject the
-            string immediately.
+
         start_state: number/name of the start state
         accepting: the set of accepting states
         deterministic (boolean): whether the FSA is deterministic or not
@@ -62,12 +51,6 @@ class FSA:
             self.deterministic = False
         return s2
 
-    def mark_accept(self, state):
-        self.accepting.add(state)
-
-    def is_accepting(self, state):
-        return state in self.accepting
-
     def move(self, sym, s1=None):
         """ Return the state(s) reachable from 's1' on 'symbol'
         """
@@ -76,6 +59,9 @@ class FSA:
             return None
         else:
             return self.transitions[(s1, sym)]
+
+    def is_accepting(self, state):
+        return state in self.accepting
 
     def _recognize_dfa(self, s):
         state = self.start_state
@@ -147,15 +133,14 @@ class FSA:
             fp.close()
 
     def build_trie(self, words):
-        """Given a list of words, create and return a trie FSA.
+        """
+        Given a list of words, create and return a trie FSA.
 
         For the given sequence of words, you should build a trie,
-        an FSA where letters are the edge labels. Since the structure is a
-        trie, common prefix paths should be shared but suffixes will
-        necessarily use many redundant paths.
+        an FSA where letters are the edge labels.
 
-        You should initialize an instance of the FSA class defined above,
-        and add only the required arcs successively.
+        Since the structure is a trie, common prefix paths should be shared but suffixes will
+        necessarily use many redundant paths.
         """
         self._reset(deterministic=True)
 
@@ -182,11 +167,10 @@ class FSA:
         return state_positions
 
     def minimize(self):
-        """ Minimize the automaton.
-
-        You are free to use any of the minimization algorithms here.
         """
-        # TODO
+        Minimize the automaton.
+        """
+
         # minimization by partitioning
         # partition states into different subsets as long there is a change
         partitions, prev = [self._states - self.accepting, self.accepting], None
@@ -220,16 +204,17 @@ class FSA:
 
 
 if __name__ == '__main__':
-    # Example usage:
     m = FSA(deterministic=True)
     m.build_trie(["walk", "walks", "wall", "walls", "want", "wants",
                   "work", "works", "forks"])
 
-    m.write_dot("screenshots/example-lexicon-fsa.dot")
+    # visualize
+    m.write_dot("data/example-lexicon-fsa.dot")
 
     m.minimize()
 
-    m.write_dot("screenshots/example-lexicon-fsa-minimized.dot")
+    # visualize minimized
+    m.write_dot("data/example-lexicon-fsa-minimized.dot")
 
     assert m.recognize("walk")
     assert not m.recognize("wark")
