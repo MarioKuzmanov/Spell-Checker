@@ -171,7 +171,7 @@ if __name__ == "__main__":
     spellfst = FST.compose_fst(lexicon, edits)
     spellfst.invert()
 
-    inword = "gras"
+    inword = "barkk"
     corrections = sorted(spellfst.transduce(inword), key=lambda x: x[1], reverse=True)[: 10]
 
     print(f'entered word: {inword}')
