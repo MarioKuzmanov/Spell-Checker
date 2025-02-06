@@ -16,5 +16,5 @@ if __name__ == "__main__":
 
     print('candidate corrections...')
     for i in range(n):
-        candidate, prob = suggestions[i]
+        candidate, prob = suggestions[i] 
         print(f'{i + 1}. {candidate} ~ {prob}')

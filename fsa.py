@@ -209,12 +209,12 @@ if __name__ == '__main__':
                   "work", "works", "forks"])
 
     # visualize
-    m.write_dot("data/example-lexicon-fsa.dot")
+    m.write_dot("images/example-lexicon-fsa.dot")
 
     m.minimize()
 
     # visualize minimized
-    m.write_dot("data/example-lexicon-fsa-minimized.dot")
+    m.write_dot("images/example-lexicon-fsa-minimized.dot")
 
     assert m.recognize("walk")
     assert not m.recognize("wark")
